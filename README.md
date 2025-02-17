@@ -18,10 +18,13 @@ We used the lammps software (version: 22Dec2022) to implement our MD simulations
 
 (3) NVE for hydrogen + ILs + Pt-electrode, this is also the step in which the generated data will be used for data analysis and property calculation.
 
-Here we shared the input data file for each of the 3 steps for both ILs, to maintain the standards of transparency, research reproducibility, and to promote the reuse of new findings.
+Here we shared the input data files for each of the 3 steps for both ILs, to maintain the standards of transparency, research reproducibility, and to promote the reuse of new findings.
 
-
+Reference:
 [1] H. Tokuda, et al., doi: 10.1021/jp047480r.
+
 [2] H. Tokuda, et al., doi: 10.1021/jp053396f.
+
 [3] Y. Tang, et al., doi: 10.1021/acs.jpcc.6b07067.
+
 [4] Y. Tang, et al., doi: 10.1039/C8AN00577J.
