@@ -1,0 +1,92 @@
+###############################################################################
+# MD simulation example
+###############################################################################
+
+###############################################################################
+# VARIABLES
+###############################################################################
+clear
+# Configuration files
+variable cfgFile         string "traj_input_420K.data"
+# Timesteps
+variable numSteps        equal  600000
+variable dt              equal  0.001
+
+variable SR_CUTOFF equal 12.0
+variable LR_CUTOFF equal 12.0
+
+# Temperature
+variable T equal 340
+# how often to save
+variable statstep equal 100  #saving statistics
+variable trajstep equal 100  #saving trjactory
+
+# time constants for NPT (no need to change)
+variable THERMO_DAMP equal 0.1 #time constant for thermostat
+variable BARO_DAMP equal 1.0   #time constant for barostat
+# time constants for NVT (no need to change)
+#variable THERMO_DAMP_NVT equal 1.0
+
+###############################################################################
+# GENERAL SETUP
+###############################################################################
+units metal  #eV, A
+boundary p p p
+atom_style full
+
+###############################################################################
+# NN
+###############################################################################
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  opls
+pair_style      lj/cut/coul/long ${SR_CUTOFF} ${LR_CUTOFF}
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.5
+
+kspace_style pppm 1.0e-6
+
+read_data ${cfgFile}
+
+###############################################################################
+# INTEGRATOR
+###############################################################################
+velocity all create ${T} 102486 mom yes rot yes dist gaussian #velocity initialization; no need to change
+
+# We move minimize process before fix shake command now, because, fix shake bonds does
+# NOT work with energy minimization. Reason: minimize process tends to minimize the bonds
+# energy (for sure it will adjust the bond length), while fix shake bonds will freeze bond length.
+# minimize 1.0e-4 1.0e-6 5000 10000
+# reset_timestep 0
+
+
+# According to literature, we need to apply bond constraints to all the -C-H- bonds
+# no matter to which molecule groups (bmim or ntf2) the -C-H- bond belongs.
+# https://pubs.acs.org/doi/10.1021/acs.jctc.9b00689
+# This list is only for pure [bmim][ntf2]
+fix SHAKE all shake 0.0001 20 0 b 8 9 11 12 14 15 16 18 19 20 21 22 23 24 25
+
+
+# The couple keyword allows two or three of the diagonal components of the pressure tensor to be “coupled” together.
+fix fxnpt all npt temp ${T} ${T} ${THERMO_DAMP} z 1.0 1.0 ${BARO_DAMP}   # Only apply Pressure along z-axis;
+#The keyword iso means couple all 3 diagonal components together when pressure is
+#computed (hydrostatic pressure), and dilate/contract the dimensions together.
+#aniso applies to orthogonal cell and allow a, b, c to change; tri applies to non-orthogonal cells
+
+
+thermo ${statstep} #save statistics every $(statstep) steps and next line tells you what to save
+thermo_style custom step temp press cpu pxx pyy pzz pxy pxz pyz ke pe etotal density lx ly lz
+
+
+# To make it easier to generate the NVE input data file, we use the new dump custom output arguments:
+# atom full style + image-flags: atom-ID molecule-ID atom-type q x y z ix iy iz
+# ix,iy,iz = box image that the atom is in
+dump dumpTrj all custom ${trajstep} traj.trj id mol type q x y z ix iy iz
+dump_modify dumpTrj sort id
+
+###############################################################################
+# MD
+###############################################################################
+run ${numSteps}
+write_data     traj.data
+write_restart  traj.restart
