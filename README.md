@@ -10,7 +10,7 @@ We build a Pt-Electrode|IL-Electrolyte|Pt-Electrode electrochemical sensor, the 
 
 ![Hydrogen Sensor Schematic](images/method_cell.bmp) 
 
-We used the lammps software (version: 22Dec2022) to implement our MD simulations. The whole simulation involve the following 3 sub-steps: 
+We used the lammps software (version: 22Dec2022) to implement our MD simulations (T = 340K). The whole simulation involve the following 3 sub-steps: 
 
 (1) NPT for only ILs; 
 
